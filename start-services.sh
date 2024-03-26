@@ -5,7 +5,7 @@
 
 # Do any other house cleaning here:
 ln -s /workspace $HOME/workspace
-chown $USER:$USER /workspace
+chmod 777 /workspace
 
 # Start SSH Server
 echo "####################### Dev-Env #######################"

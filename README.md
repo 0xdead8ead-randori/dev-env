@@ -9,6 +9,18 @@ clone:
 git clone git@github.com:0xdead8ead-randori/dev-env.git ~/.dev-env
 ```
 
+modify `~/.dev-env/.gitconfig`:
+```
+[user]
+    name = <github_user_here>
+    email = <ibm_email_here>
+[pull]
+    rebase = false
+[core]
+    editor = 'vim'
+```
+
+
 build container:
 ```
 (cd $HOME/.dev-env/ && ./build.sh)

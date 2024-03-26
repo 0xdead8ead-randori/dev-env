@@ -1,0 +1,8 @@
+[user]
+    name = 0xdead8ead-randori
+    email = hacker@ibm.com
+[pull]
+    rebase = false
+[core]
+    editor = 'vim'
+

@@ -74,6 +74,10 @@ RUN sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli conta
 # install poetry
 RUN pip install poetry
 
+# install git config
+COPY .gitconfig $HOME/
+
+
 # install openssh
 RUN sudo apt install -y openssh-server
 RUN sudo mkdir /run/sshd
