@@ -4,17 +4,19 @@ FROM --platform=linux/arm64 ubuntu:22.04
 ARG PYTHON_VERSION=3.11.2
 ENV PYTHON_VERSION=$PYTHON_VERSION
 
+# Username for dev environment - make sure it matches the host user for easy access to workspace files under ~/.dev-env/
 ARG DEV_USER="dead8ead"
 ENV DEV_USER=$DEV_USER
 
 ARG SSH_PUB_KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXhGGQ0BpRfDTf/J1E2E+1sYPgkjB/MHbL5OEIK1JCh"
 ENV SSH_PUB_KEY=$SSH_PUB_KEY
 
-# general dependencies
+# initial dependencies
 RUN apt update && apt install -y sudo zsh vim net-tools procps
 
 # create user
-RUN useradd -rm -d /home/$DEV_USER -s /bin/zsh -G sudo -U -u 1001 $DEV_USER && passwd -d $DEV_USER
+RUN groupadd -g 1001 $DEV_USER
+RUN useradd -rm -d /home/$DEV_USER -s /bin/zsh -g $DEV_USER -G sudo -u 1001 $DEV_USER && passwd -d $DEV_USER
 USER $DEV_USER
 WORKDIR /home/$DEV_USER
 ENV HOME=/home/$DEV_USER
@@ -63,6 +65,12 @@ RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dear
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 RUN sudo apt update && sudo apt install -y google-cloud-cli
 
+# install docker cli
+RUN sudo apt-get install ca-certificates curl
+RUN sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+RUN sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
 # install poetry
 RUN pip install poetry
 
@@ -70,8 +78,12 @@ RUN pip install poetry
 RUN sudo apt install -y openssh-server
 RUN sudo mkdir /run/sshd
 RUN mkdir $HOME/.ssh && echo $SSH_PUB_KEY > $HOME/.ssh/authorized_keys
+RUN sudo adduser $DEV_USER _ssh
+
+# additional deps - add any additional system tools needed here
+RUN sudo apt install -y tree
 
 
+COPY start-services.sh /app/
 EXPOSE 22
-CMD ["sudo", "/usr/sbin/sshd", "-D"]
-
+CMD ["/app/start-services.sh"]
